@@ -1,0 +1,1344 @@
+\documentclass[10pt]{article}
+
+% \usepackage[english]{babel}
+\usepackage{graphics}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{tikz}
+\usepackage[cmex10]{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage{xfrac}
+\usepackage{float}
+\usepackage{booktabs}    % for beautiful tables
+\usepackage{titlesec}    % for header spacing
+\usepackage[separate-uncertainty=true,detect-mode=true]{siunitx}     % for si units
+\usepackage{color}
+\usepackage{subfig}
+\usepackage[capitalize]{cleveref}
+\usepackage[backend=bibtex,style=ieee,backref=true]{biblatex}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+\graphicspath{ {figures/} }
+
+% see http://tex.stackexchange.com/questions/311426/bibliography-error-use-of-blxbblverbaddi-doesnt-match-its-definition-ve
+\makeatletter
+\def\blx@maxline{77}
+\makeatother
+
+\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{fit}
+\usetikzlibrary{positioning}
+\usetikzlibrary{intersections}
+\usetikzlibrary{graphdrawing}
+\usetikzlibrary{graphs}
+\usetikzlibrary{calc}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{patterns}
+\usegdlibrary{layered}
+
+% \usepackage[pgfplots]{juliaplots}
+% \pgfplotsset{compat=newest}
+% \pgfplotsset{every axis legend/.append style={legend cell align=left}}
+% \pgfplotsset{
+%     /pgfplots/ybar legend/.style={
+%         /pgfplots/legend image code/.code={%
+%             \draw[##1,/tikz/.cd,yshift=-0.25em] (0cm,0cm) rectangle (3pt,0.8em);
+%         },
+%     },
+%     ylabsh/.style={ % for aligning y labels in group plots
+%         every axis y label/.style={
+%             at={(0,0.5)}, xshift=#1, rotate=90
+%         },
+%     },
+% }
+% \fvset{baselinestretch=0.8}
+% \usepgfplotslibrary{fillbetween}
+% \usepgfplotslibrary{groupplots}
+% \usepgfplotslibrary{patchplots}
+
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COMMANDS
+
+\newcommand{\todo}[1]{\textbf{\textcolor{magenta}{#1}}}
+\newcommand{\needcite}{\todo{cite}}
+\newcommand{\tim}[1]{\textbf{\textcolor{teal}{#1}}}
+\newcommand{\mykel}[1]{\textbf{\textcolor{orange}{#1}}}
+
+% USAGE: \jlpkg{DualNumbers} -> DualNumbers.jl
+\newcommand{\jlpkg}[1]{\texttt{#1.jl}}
+
+\newenvironment{texthook}[1]{}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MATH
+
+\newcommand{\true}{\text{true}}
+\newcommand{\false}{\text{false}}
+\newcommand{\transpose}{\top}
+\newcommand{\vect}[1]{\boldsymbol{\mathbf{#1}}}
+\newcommand{\mat}[1]{\vect{#1}}
+
+\newcommand{\paren}[1]{\mathopen{}\mathclose\bgroup\left(#1\aftergroup\egroup\right)}
+\newcommand{\brock}[1]{\mathopen{}\mathclose\bgroup\left[#1\aftergroup\egroup\right]}
+\newcommand{\curly}[1]{\mathopen{}\mathclose\bgroup\left\{#1\aftergroup\egroup\right\}}
+\newcommand{\anglebrackets}[1]{\langle #1 \rangle}
+\newcommand{\ceil}[1]{\lceil #1 \rceil}
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+
+\newcommand{\expectation}{\operatornamewithlimits{\mathbb{E}}}
+\newcommand{\minimize}{\operatornamewithlimits{minimize}}
+\newcommand{\maximize}{\operatornamewithlimits{maximize}}
+\newcommand{\argmin}{\operatornamewithlimits{arg\,min}}
+\newcommand{\argmax}{\operatornamewithlimits{arg\,max}}
+\newcommand{\subjectto}{\operatornamewithlimits{subject\enspace to}}
+\newcommand{\for}{\text{for} \;}
+\DeclareMathOperator{\Real}{\text{Re}}
+\DeclareMathOperator{\Imag}{\text{Im}}
+\DeclareMathOperator{\nil}{\textsc{nil}}
+\DeclareMathOperator{\Normal}{\mathcal{N}}
+\DeclareMathOperator{\Uniform}{\mathcal{U}}
+\DeclareMathOperator{\atantwo}{atan2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COLORS
+
+\definecolor{pastelMagenta}{HTML}{FF48CF} % magenta
+\definecolor{pastelPurple}{HTML}{8770FE} % purple
+\definecolor{pastelBlue}{HTML}{1BA1EA} % blue
+\definecolor{pastelSeaGreen}{HTML}{14B57F} % sea green
+\definecolor{pastelGreen}{HTML}{3EAA0D} % green
+\definecolor{pastelOrange}{HTML}{C38D09} % orange
+\definecolor{pastelRed}{HTML}{F5615C} % red
+
+\newcommand{\colorA}{pastelPurple}
+\newcommand{\colorB}{pastelBlue}
+\newcommand{\colorC}{pastelSeaGreen}
+\newcommand{\colorD}{pastelGreen}
+\newcommand{\colorE}{pastelOrange}
+\newcommand{\colorF}{pastelRed}
+\newcommand{\colorG}{pastelMagenta}
+
+%%%%%%%%%%%%%%%
+
+\usetikzlibrary{arrows}
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{fit}
+\usetikzlibrary{matrix}
+\usetikzlibrary{positioning}
+\usetikzlibrary{intersections}
+\usetikzlibrary{graphs}
+\usetikzlibrary{calc}
+\usetikzlibrary{patterns}
+\usetikzlibrary{decorations.pathreplacing}
+\usepgfplotslibrary{groupplots}
+
+\addtolength{\oddsidemargin}{-.875in}
+\addtolength{\evensidemargin}{-.875in}
+\addtolength{\textwidth}{1.75in}
+\addtolength{\topmargin}{-.875in}
+\addtolength{\textheight}{1.75in}
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{0.5em}        % small paragraph spacing
+
+\titlespacing\section{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+\newcommand{\drawX}[1]{\draw[ultra thick, pastelBlue] ($(#1) - ( 0.25,0.25)$) -- ++(0.5, 0.5) ($(#1) + (-0.25,0.25)$) -- ++(0.5,-0.5);}
+\newcommand{\drawO}[1]{\draw[ultra thick, pastelRed] (#1) circle (0.25);}
+\newcommand{\board}{\draw (-0.5,0.5) -- ++(3,0) (-0.5,1.5) -- ++(3,0) (0.5,-0.5) -- ++(0,3) (1.5,-0.5) -- ++(0,3);}
+
+\begin{document}
+
+{\LARGE \bf Alpha Zero - How and Why it Works}
+
+\vspace{2mm}
+
+% Mykel Kochenderfer, PI \\
+Tim Wheeler, PhD Candidate @ Stanford \\
+Department of Aeronautics and Astronautics \\
+Automotive AI \\
+wheelert@stanford.edu \\[1em]
+
+\section*{Overview}
+
+DeepMind's AlphaGo made waves when it became the first AI to beat a top human Go player in \todo{THEN}.
+This version of AlphaGo---AlphaGo Lee---used a large set of Go games from the best players in the world during its training process.
+A new paper was released a few days detailing a new neural net---AlphaGo Zero---that does not need humans to show it how to play Go.
+Not only does it outperform all previous Go players, human or machine, it does so after only three days of training time.
+This article will explain how and why it works, including an implementation of the Zero algorithm in Julia.
+
+% You need to be at least this tall to read this article:
+% \begin{enumerate}
+% 	\item Basic understanding of neural networks (backprop, what a derivative is)
+% 	\item
+% \end{enumerate}
+
+\section*{Monte Carlo Tree Search}
+
+The go-to algorithm for writing bots to play discrete, deterministic games with perfect information is Monte Carlo tree search (MCTS).
+A bot playing a game like Go, chess, or checkers can figure out what move it should make by trying them all, then checking all possible responses by the opponent, all possible moves after that, etc.
+For a game like Go the number of moves to try grows really fast.
+Monte Carlo tree search will selectively try moves based on how good it thinks they are, thereby focusing its effort on moves that are most likely to happen.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node (text) {discrete, deterministic games with perfect information};
+		\node[below right=0.0 and -1 of text] (info) {both players see everything};
+		\node[below right=0.5 and -1 of text] (game) {players competing against one another};
+		\node[below right=1.0 and -1 of text] (deterministic) {every move has a set outcome};
+		\node[below right=1.5 and -1 of text] (discrete) {finite number of possible moves and board states};
+
+		\draw[thick, pastelBlue] ($(text.south east) + (-0.1,0.1)$) -- ++(-3,0)
+								 ($(text.south east) + (-0.1,0.1) + (-1.5,0)$) |- (info);
+		\draw[thick, pastelSeaGreen] ($(text.south east) + (-3.95,0.1)$) -- ++(-1,0)
+		                          ($(text.south east) + (-3.95,0.1) + (-0.5,0)$) |- (game);
+		\draw[thick, pastelRed] ($(text.south east) + (-5.05,0.1)$) -- ++(-2,0)
+								($(text.south east) + (-5.05,0.1) + (-1,0)$) |- (deterministic);
+		\draw[thick, pastelGreen] ($(text.south east) + (-7.25,0.1)$) -- ++(-1.25,0)
+								($(text.south east) + (-7.25,0.1) + (-1.25/2,0)$) |- (discrete);
+	\end{tikzpicture}
+\end{figure}
+
+More technically, the algorithm works as follows.
+The game-in-progress is in an initial state $s_0$, and it is the bot's turn to play.
+The bot can choose from a set of actions $\mathcal{A}$.
+Monte Carlo tree search begins with a tree consisting of a single node for $s_0$.
+This node is \textit{expanded} by trying every action $a \in \mathcal{A}$ and constructing a corresponding child node for each action.
+Below we show this expansion for a game of tic-tac-toe:
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+
+		\node[thick, draw=black!50, rounded corners=2mm] (root) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root.north west) + (0.35,-0.075)$) {$s_0$};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+	\end{tikzpicture}
+\end{figure}
+
+The value of each new child node must then be determined.
+The game in the child node is \textit{rolled out} by randomly taking moves from the child state until a win, loss, or tie is reached.
+Wins are scored at $+1$, losses at $-1$, and ties at $0$.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root.north)$) {$s_{0,1} = +1$};
+
+		\node[thick, draw=black!50, rounded corners=2mm, right=1 of root] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=1 of A] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{2,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=1 of B] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{2,2}
+				\drawX{1,2}
+				\drawO{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=1 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				% \fill[pastelBlue!50, rounded corners=0] ($(0,2) + (45:0.5)$) -- ($(2,0) + (45:0.5)$) arc (45:-135:0.5) -- ($(0,2) + (-135:0.5)$) arc (225:45:0.5);
+				\fill[pastelBlue!50, rounded corners=0] ($(1,2) + (0:0.5)$) -- ($(1,0) + (0:0.5)$) arc (0:-180:0.5) -- ($(1,2) + (180:0.5)$) arc (180:0:0.5);
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{2,2}
+				\drawX{1,2}
+				\drawO{2,1}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+
+		\draw[ultra thick, black!50, ->, >=stealth'] (root) -- (A);
+		\draw[ultra thick, black!50, ->, >=stealth'] (A) -- (B);
+		\draw[ultra thick, black!50, ->, >=stealth'] (B) -- (C);
+		\draw[ultra thick, black!50, ->, >=stealth'] (C) -- (D);
+	\end{tikzpicture}
+\end{figure}
+
+The random rollout for the first child given above estimates a value of $+1$.
+This value may not represent optimal play---it can vary based on how the rollout progresses.
+One can run rollouts unintelligently, drawing moves uniformly at random.
+One can often do better by following a better-though still typically random-strategy, or by estimating the value of the state directly.
+More on that later.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root.north west) + (0.35,-0.075)$) {$s_0$};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+
+		\node[anchor=north, text width=1.5cm] at (A.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = +1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (B.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  0\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (C.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = -1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (D.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = -1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (E.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  0\end{aligned}\]};
+	\end{tikzpicture}
+\end{figure}
+
+Above we show the expanded tree with approximate values for each child node.
+Note that we store two properties: the accumulated value $W$ and the number of times rollouts have been run at or below that node, $N$.
+We have only visited each node once.
+
+The information from the child nodes is then propagated back up the tree by increasing the parent's value and visit count.
+Its accumulated value is then set to the total accumulated value of its children:
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root_top) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root_top.north west) + (0.35,-0.075)$) {$s_0$};
+		\node[anchor=north, text width=1.5cm] (root) at (root_top.south) {\vspace{-1em}\[\begin{aligned}N & = 5 \\ W & = -1\end{aligned}\]};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+
+		\node[anchor=north, text width=1.5cm] at (A.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = +1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (B.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  0\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (C.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = -1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (D.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = -1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (E.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  0\end{aligned}\]};
+	\end{tikzpicture}
+\end{figure}
+
+Monte Carlo tree search continues for multiple iterations consisting of selecting a node, expanding it, and propagating back up the new information.
+Expansion and propagation have already been covered.
+
+Monte Carlo tree search does not expand all leaf nodes, as that would be very expensive.
+Instead, the selection process chooses nodes that strike a balance between being lucrative---having high estimated values---and being relatively unexplored---having low visit counts.
+
+A leaf node is selected by traversing down the tree from the root node, always choosing the child $i$ with the highest upper confidence tree (UCT) score:
+\[
+U_i = \frac{W_i}{N_i} + c\sqrt{\frac{\ln N_p}{N_i}}
+\]
+where $W_i$ is the accumulated value of the $i$th child, $N_i$ is the visit count for $i$th child, and $N_p$ is the number of visit counts for the parent node.
+The parameter $c \geq 0$ controls the tradeoff between choosing lucrative nodes (low $c$) and exploring nodes with low visit counts (high $c$).
+It is often set empirically.
+
+The UCT scores ($U$'s) for the tic-tac-toe tree with $c=1$ are:
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root_top) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root_top.north west) + (0.35,-0.075)$) {$s_0$};
+		\node[anchor=north, text width=1.5cm] (root) at (root_top.south) {\vspace{-1em}\[\begin{aligned}N & = 5 \\ W & = -1\end{aligned}\]};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+
+		\node[anchor=north, text width=1.5cm] at (A.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = +1 \\ U & = 2.269\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (B.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  0 \\ U & = 1.269\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (C.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = -1 \\ U & = 0.269\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (D.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = -1 \\ U & = 0.269\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (E.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  0 \\ U & = 1.269\end{aligned}\]};
+	\end{tikzpicture}
+\end{figure}
+
+In this case we pick the first node, $s_{0,1}$.\footnote{In the event of a tie one can either randomly break the tie or just pick the first of the bet nodes.}
+That node is expanded and the values are propagated back up:
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+
+		\node[thick, draw=black!50, rounded corners=2mm] (root_top) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root_top.north west) + (0.35,-0.075)$) {$s_0$};
+		\node[anchor=north, text width=1.5cm] (root) at (root_top.south) {\vspace{-1em}\[\begin{aligned}N & = 9 \\ W & = 2\end{aligned}\]};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+
+		\node[anchor=north, text width=1.5cm] at (A.south) {\vspace{-1em}\[\begin{aligned}N & = 5 \\ W & =  4\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (B.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  0\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (C.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  -1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (D.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  -1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (E.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & =  0\end{aligned}\]};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=2 of A] (AB) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of AB] (AA) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of AB] (AC) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of AC] (AD) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{2,1}
+				\board
+			\end{tikzpicture}
+		};
+
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] ($(A.south) + (0,-1.25)$) -- ++(0,-0.25) -| (AA);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] ($(A.south) + (0,-1.25)$) -- ++(0,-0.25) -| (AB);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] ($(A.south) + (0,-1.25)$) -- ++(0,-0.25) -| (AC);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] ($(A.south) + (0,-1.25)$) -- ++(0,-0.25) -| (AD);
+
+		\node[anchor=south] at ($(AA.north west) + (0.35,-0.075)$) {$s_{0,1,1}$};
+		\node[anchor=south] at ($(AB.north west) + (0.35,-0.075)$) {$s_{0,1,2}$};
+		\node[anchor=south] at ($(AC.north west) + (0.35,-0.075)$) {$s_{0,1,3}$};
+		\node[anchor=south] at ($(AD.north west) + (0.35,-0.075)$) {$s_{0,1,4}$};
+
+		\node[anchor=north, text width=1.5cm] at (AA.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = 1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (AB.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = 1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (AC.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = 1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (AD.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = 0\end{aligned}\]};
+	\end{tikzpicture}
+\end{figure}
+
+Note that each accumulated value $W$ reflects whether X's won or lost.
+During selection, we keep track of whether it is X's or O's turn to move, and flip the sign of $W$ whenever it is O's turn.
+
+We continue to run iterations of Monte Carlo tree search until we run out of time.
+The tree is gradually expanded and we (hopefully) explore the possible moves, identifying the best move to take.
+The bot then actually makes a move in the original, real game by picking the first child with the highest number of visits.
+For example, if the top of our tree looks like:
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root_top) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root_top.north west) + (0.35,-0.075)$) {$s_0$};
+		\node[anchor=north, text width=1.5cm] (root) at (root_top.south) {\vspace{-1em}\[\begin{aligned}N & = 256 \\ W & = 52\end{aligned}\]};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+
+		\node[anchor=north, text width=1.5cm] at (A.south) {\vspace{-1em}\[\begin{aligned}N & = 106 \\ W & = 51\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (B.south) {\vspace{-1em}\[\begin{aligned}N & = 31 \\ W & =  -1\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (C.south) {\vspace{-1em}\[\begin{aligned}N & = 34 \\ W & =  -10\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (D.south) {\vspace{-1em}\[\begin{aligned}N & = 40 \\ W & =  -11\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (E.south) {\vspace{-1em}\[\begin{aligned}N & = 45 \\ W & =  1\end{aligned}\]};
+	\end{tikzpicture}
+\end{figure}
+then the bot would choose the first action and proceed to $s_{0,1}$.
+
+\section*{Efficiency Through Expert Policies}
+
+Games like chess and Go have very large branching factors.
+In a given game state there are many possible actions to take, making it very difficult to adequately explore the future game states.
+As a result, there are an estimated $10^{47}$ board states in chess, and Go played on a traditional $19 \times 19$ board has around $10^170$ (Tic-tac-toe only has \num{5478} values states).
+
+Move evaluation with vanilla Monte Carlo tree search just isn't efficient enough.
+We need a way to further focus our attention to worthwhile moves.
+
+Suppose we have an \textit{expert policy} $\pi$ that, for a given state $s$, tells us how likely an expert-level player is to make each possible action.
+For the tic-tac-toe example, this might look like:
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root_top) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root_top.north west) + (0.35,-0.075)$) {$s_0$};
+		\node[anchor=north, text width=1.5cm] (root) at (root_top.south) {\vspace{-1em}\[\begin{aligned}N & = 256 \\ W & = 52\end{aligned}\]};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+
+		\node[anchor=north, text width=1.5cm] at (A.south) {\vspace{-1em}\[\begin{aligned}P & = 0.90\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (B.south) {\vspace{-1em}\[\begin{aligned}P & = 0.02\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (C.south) {\vspace{-1em}\[\begin{aligned}P & = 0.03\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (D.south) {\vspace{-1em}\[\begin{aligned}P & = 0.01\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (E.south) {\vspace{-1em}\[\begin{aligned}P & = 0.04\end{aligned}\]};
+	\end{tikzpicture}
+\end{figure}
+\vspace{-1em}
+where each $P_i = \pi(a_i \mid s_0)$ is the probability of choosing the $i$th action $a_i$ given the root state $s_0$.
+
+If the expert policy is really good then we can produce a strong bot by directly drawing our next action according to the probabilities produces by $\pi$, or better yet, by taking the move with the highest probability.
+Unfortunately, getting an expert policy is difficult, and verifying that one's policy is optimal is difficult as well.
+
+Fortunately, one can improve on a policy by using a modified form of Monte Carlo tree search.
+This version will also store the probability of each node according to the policy, and this probability is used to adjust the node's score during selection.
+The probabilistic upper confidence tree score used by DeepMind is:
+\[
+U_i = \frac{W_i}{N_i} + c P_i\sqrt{\frac{\ln N_p}{1 + N_i}}
+\]
+
+As before, the score trades off between nodes that consistently produce high scores and nodes that are unexplored.
+Now, node exploration is guided by the expert policy, biasing exploration towards moves the expert policy considers likely.
+If the expert policy truly is good, then Monte Carlo tree search efficiently focuses on good evolutions of the game state.
+If the expert policy is poor, then Monte Carlo tree search may focus on bad evolutions of the game state.
+Either way, in the limit as the number of samples gets large, the value of a node is dominated by the win/loss ratio $W_i/N_i$, as before.
+
+\section*{Efficiency Through Value Approximation}
+
+A second form of efficiency can be achieved by avoiding expensive and potentially inaccurate random rollouts.
+One option is to use the expert policy from the previous section to guide the random rollout.
+If the policy is good, then the rollout should reflect more realistic, expert-level game progressions and thus more reliably estimate a state's value.
+
+A second option is to avoid rollouts altogether, and directly approximate the value of a state with a value approximator function $\hat{W}(x)$.
+This function takes a state and directly computes a value in $[-1,1]$, without conducting rollouts.
+Clearly, if $\hat{W}$ is a good approximation of the true value, but can be executed faster than a rollout, then execution time can be saved without sacrificing performance.
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root.north)$) {$\hat{W}(s_{0,1}) = 0.1$};
+	\end{tikzpicture}
+\end{figure}
+
+Value approximation can be used in tandem with an expert policy to speed up Monte Carlo tree search.
+A serious concern remains---how does one obtain an expert policy and a value function?
+Does an algorithm exist for training the expert policy and value function?
+
+\section*{The Alpha Zero Neural Net}
+
+The Alpha Zero algorithm produces better and better expert policies and value functions over time by playing games against itself with accelerated Monte Carlo tree search.
+The expert policy $\pi$ and the approximate value function $\hat{W}$ are both represented by deep neural networks.
+In fact, to increase efficiency, Alpha Zero uses one neural network $f$ that takes in the game state\footnote{Technically, it takes in the previous \todo{eight} game states and an indicator telling it whose turn it is.} and produces both the probabilities over the next move and the approximate state value.
+
+\[f(s) \rightarrow [\vect p, W]\]
+
+Leaves in the search tree are expanded by evaluating them with the neural network.
+Each child is initialized with $N = 0$, $W = 0$, and with $P$ corresponding to the prediction from the network.
+The value of the expanded node is set to the predicted value and this value is then backed up the tree.
+
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root_top) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root_top.north west) + (0.35,-0.075)$) {$s_0$};
+		\node[anchor=north, text width=1.5cm] (root) at (root_top.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = 0.07 \\ P & = 1.00\end{aligned}\]};
+		\node at ($(root.east) + (2,0)$) (Wlabel) {from $f(s_0)$};
+		\draw[ultra thick, ->, >=stealth', pastelRed] (Wlabel) -- (root);
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+
+		\node[anchor=north, text width=1.5cm] at (A.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.90\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (B.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.02\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (C.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.03\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (D.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.01\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (E.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.04\end{aligned}\]};
+
+		\node at ($(E.south) + (2.85,-1.42)$) (Plabel) {from $f(s_0)$};
+		\draw[ultra thick, ->, >=stealth', pastelRed] (Plabel) -- ++ (-2,0);
+	\end{tikzpicture}
+\end{figure}
+
+Selection and backup are unchanged.
+Simply put, during backup a parent's visit counts are incremented and its value is increased according to $W$.
+
+The search tree following another selection, expansion, and backup step is:
+\begin{figure}[H]
+	\centering
+	\begin{tikzpicture}[x=1cm, y=1cm]
+		\node[thick, draw=black!50, rounded corners=2mm] (root_top) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[anchor=south] at ($(root_top.north west) + (0.35,-0.075)$) {$s_0$};
+		\node[anchor=north, text width=1.5cm] (root) at (root_top.south) {\vspace{-1em}\[\begin{aligned}N & = 2 \\ W & = -0.03 \\ P & = 1.00\end{aligned}\]};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=1 of root] (C) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of C] (B) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of B] (A) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of C] (D) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of D] (E) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{2,1}
+				\board
+			\end{tikzpicture}
+		};
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (A);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (B);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (C);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (D);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] (root.south) -- ++(0,-0.25) -| (E);
+
+		\node[anchor=south] at ($(A.north west) + (0.35,-0.075)$) {$s_{0,1}$};
+		\node[anchor=south] at ($(B.north west) + (0.35,-0.075)$) {$s_{0,2}$};
+		\node[anchor=south] at ($(C.north west) + (0.35,-0.075)$) {$s_{0,3}$};
+		\node[anchor=south] at ($(D.north west) + (0.35,-0.075)$) {$s_{0,4}$};
+		\node[anchor=south] at ($(E.north west) + (0.35,-0.075)$) {$s_{0,5}$};
+
+		\node[anchor=north, text width=1.5cm] at (A.south) {\vspace{-1em}\[\begin{aligned}N & = 1 \\ W & = -0.1 \\ P & = 0.90\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (B.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.02\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (C.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.03\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (D.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.01\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (E.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.04\end{aligned}\]};
+
+		\node[thick, draw=black!50, rounded corners=2mm, below=2.5 of A] (AB) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{1,0}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, left=0.5 of AB] (AA) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{1,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of AB] (AC) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{2,2}
+				\board
+			\end{tikzpicture}
+		};
+		\node[thick, draw=black!50, rounded corners=2mm, right=0.5 of AC] (AD) {
+			\begin{tikzpicture}[x=0.5cm, y=0.5cm]
+				\drawX{1,1}
+				\drawO{0,0}
+				\drawX{2,0}
+				\drawO{0,2}
+				\drawX{0,1}
+				\drawO{2,1}
+				\board
+			\end{tikzpicture}
+		};
+
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] ($(A.south) + (0,-1.75)$) -- ++(0,-0.25) -| (AA);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] ($(A.south) + (0,-1.75)$) -- ++(0,-0.25) -| (AB);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] ($(A.south) + (0,-1.75)$) -- ++(0,-0.25) -| (AC);
+		\draw[ultra thick, ->, >=stealth', rounded corners=2mm] ($(A.south) + (0,-1.75)$) -- ++(0,-0.25) -| (AD);
+
+		\node[anchor=south] at ($(AA.north west) + (0.35,-0.075)$) {$s_{0,1,1}$};
+		\node[anchor=south] at ($(AB.north west) + (0.35,-0.075)$) {$s_{0,1,2}$};
+		\node[anchor=south] at ($(AC.north west) + (0.35,-0.075)$) {$s_{0,1,3}$};
+		\node[anchor=south] at ($(AD.north west) + (0.35,-0.075)$) {$s_{0,1,4}$};
+
+		\node[anchor=north, text width=1.5cm] at (AA.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.02\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (AB.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.01\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (AC.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.03\end{aligned}\]};
+		\node[anchor=north, text width=1.5cm] at (AD.south) {\vspace{-1em}\[\begin{aligned}N & = 0 \\ W & = 0 \\ P & = 0.94\end{aligned}\]};
+	\end{tikzpicture}
+\end{figure}
+
+The core idea of the Alpha Zero algorithm is that the predictions of the neural network can be improved, and the play generated by Monte Carlo tree search can be used to provide the training data.
+The policy portion of the neural network is improved by training the predicted probabilities $\vect p$ for $s_0$ to match the improved probability ${\vect \pi}$ obtained from running Monte Carlo tree on $s_0$.
+After running Monte Carlo tree search, the improved policy prediction is:
+\[
+\pi_i = N_i^{1/\tau}
+\]
+for a constant $\tau$.
+Values of $\tau$ close to zero produce policies that choose the best move according to the Monte Carlo tree search evaluation.
+
+The value portion of the neural network is improved by training the predicted value to match the eventual win/loss/tie result of the game, $Z$.
+Their loss function is:
+\[
+(W - Z)^2 + {\vect \pi}^\transpose \ln \vect p + \lambda \|\vect \theta\|_2^2
+\]
+where $(W - Z)^2$ is the value loss, $\pi^\transpose \ln \vect p$ is the policy loss, and $\lambda \|\theta\|_2^2$ is an extra regularization term with parameter $\lambda \geq 0$ and $\vect \theta$ represents the parameters in the neural network.
+
+Training is done entirely in self-play.
+One stats with a randomly initialized set of neural network parameters $\vect \theta$.
+This neural network is then used in multiple games in which it plays itself.
+In each of these games, for each move, Monte Carlo tree search is used to calculate $\pi$.
+The final outcome of each game determines that game's value for $Z$.
+The parameters $\vect \theta$ are then improved by using gradient descent\footnote{Or any of the more sophisticated accelerated descent methods---Alpha Zero used \todo{ADAM}.} on the loss function for a random selection of states played.
+
+\section*{Julia Implementation}
+
+I implemented the Alpha Zero algorithm in Julia.
+\todo{You can find the self-contained code here.}
+\todo{The following plots...}
+
+\todo{Performance of pure MCTS with totally random policy vs. depth}
+
+\todo{heatmap of pure MCTS with fixed depth w/ x-axis $c$ and y-axis $\tau$}
+
+\todo{Performance vs. training time} % show how long it takes to converge to perfect play
+
+\todo{heatmap of time to convergence to perfect play w/ x-axis $c$ and y-axis $\lambda$}
+
+\section*{Closing Comments}
+
+\todo{They contributed a clean and stable learning algorithm that trains efficiently using only data from self-play.}
+\todo{What Andrewj Karpathy has said about this - that this is just discrete games, etc.}
+\todo{Re-iterate on what Sam Harris said, that AIs will only be human-level for a brief instant.}
+
+\end{document}
