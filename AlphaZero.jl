@@ -1,5 +1,6 @@
 
 using StatsBase
+import DataStructures: CircularBuffer
 
 const State = UInt32 # bits 1-9 are x, bits 10-8 are o. You can tell whose turn it is by number set
                      # bit 1 is top left, bit 2 is center left, bit 3 is bottom left, bit 4 is top center:
@@ -54,6 +55,13 @@ function game_status(s::State)
     end
 end
 
+function Base.copy!(x::Vector{Float64}, s::State)
+    for i in 1 : 8
+        x[i] = is_x_at(s, i)
+        x[i+8] = is_o_at(s, i)
+    end
+    return x
+end
 
 function valid_moves(s::State)
     retval = Int[]
@@ -69,7 +77,6 @@ end
 
 function print_board(io::IO, s::State)
     println(io, "game_status:   ", game_status(s))
-    println(io, "black_to_move: ", black_to_move(s))
     @printf(io, " %s | %s | %s\n", char_at(s,1), char_at(s,4), char_at(s,7))
     println(io, "--- --- ---")
     @printf(io, " %s | %s | %s\n", char_at(s,2), char_at(s,5), char_at(s,8))
@@ -183,7 +190,7 @@ function mcts_backup!(leaf::MCTSNode, v::Float64)
     return node
 end
 
-function mcts_sim!(root::MCTSNode, c::Float64)
+function mcts_sim!(root::MCTSNode, c::Float64, M)
 
     leaf = mcts_select(root, c)
 
@@ -191,10 +198,7 @@ function mcts_sim!(root::MCTSNode, c::Float64)
         v = convert(Float64, game_status(leaf.s))
         mcts_backup!(leaf, v)
     else
-        # p, v = predict(s)
-        
-        p = ones(Float64, 9)
-        v = 0.0 # no clue who wins
+        p, v = predict(M, leaf.s)
 
         # zero-out invalid moves
         for i in 1 : 9
@@ -203,9 +207,14 @@ function mcts_sim!(root::MCTSNode, c::Float64)
             end
         end
 
-        @assert sum(p) > 0
+        if sum(p) == 0
+            for i in 1 : 9
+                if !is_any_at(leaf.s, i)
+                    p[i] = 1.0
+                end
+            end
+        end
 
-        # produce valid prob distr
         normalize!(p, 1)
 
         mcts_expand!(leaf, p)
@@ -214,9 +223,9 @@ function mcts_sim!(root::MCTSNode, c::Float64)
 
     return root
 end
-function run_mcts!(root::MCTSNode, c::Float64, nsims::Int)
+function run_mcts!(root::MCTSNode, c::Float64, nsims::Int, M)
     for i in 1 : nsims
-        mcts_sim!(root, c)
+        mcts_sim!(root, c, M)
     end
     return root
 end
@@ -237,6 +246,79 @@ function display_tree(node::MCTSNode, ntabs::Int=0)
     end
 end
 
+function predict(M::Void, s::State)
+    p = ones(Float64, 9)
+    v = 0.0 # no clue who wins
+    return (p,v)
+end
+
+const POSITION_LOG_CAPACITY = 100
+position_log = CircularBuffer{AffineModelData}(POSITION_LOG_CAPACITY)
+
+mutable struct AffineModelData
+    x::Vector{Float64}
+    c₁::Vector{Float64} # W⋅x
+    c₂::Vector{Float64} # b + c₁
+    p_tilde::Vector{Float64} # relu(c₂[1:9])
+    v::Float64 # tanh(c₂[10])
+    A::BitVector # valid move mask
+    p_tilde_masked::Vector{Float64}
+    p::Vector{Float64} # probability distribution
+    z::Float64
+    c::Float64
+    π::Vector{Float64}
+    loss::Float64
+end
+
+struct AffineModel
+    W::Matrix{Float64}
+    b::Vector{Float64}
+end
+
+AffineModel() = AffineModel(
+        zeros(Float64,16),
+        randn(Float64,10,16),
+        zeros(Float64,10),
+        randn(Float64,10),
+        zeros(Float64,10),
+        zeros(Float64,9),
+        0.0,
+        trues(9),
+        zeros(Float64,9),
+        zeros(Float64,9),
+        0.0,
+        0.0,
+        zeros(Float64,9),
+        0.0,
+        )
+
+relu(x::Real) = max(0,x)
+function predict(M::AffineModel, s::State)
+    
+    copy!(M.x, s)
+
+    M.c₁[:] = M.W * M.x
+    M.c₂[:] = M.b + M.c₁
+    M.p_tilde[:] = relu.(M.c₂[1:9]) .+ 0.001 # avoid catastrophe with all-negative values
+    M.v = tanh(M.c₂[10])
+
+    return (M.p_tilde, M.v)
+end
+function loss(M::AffineModel, z::Int, π::Vector{Float64}, A::BitVector, c::Float64)
+    copy!(M.A, A)
+    copy!(M.π, π)
+    M.p_tilde_masked[:] = M.p_tilde .* A
+    M.p[:] = M.p_tilde_masked ./ sum(M.p_tilde_masked)
+    M.z = z
+    M.c = c
+    M.loss = (z-M.v)^2 - π⋅log.(M.p) + c*(norm(M.W,2) + norm(M.b,2))
+    return M.loss
+end
+# function accumulate_gradient!(M::AffineModel, ∇::AffineModelGradient, s::State, z::Int, π::Vector{Float64}, A::BitVector, c::Float64)
+#     predict(M, s)
+#     loss(M, z, π, c)
+# end
+
 # struct Model
 #     x::Vector{Float64}
 
@@ -251,7 +333,7 @@ end
 #     c::Float64
 #     loss::Float64
 # end
-# relu(x::Real) = max(0,x)
+# 
 # function forward!(M::Model, s::State)
 
 #     x, W, b, y = M.x, M.W, M.b, M.y
@@ -315,25 +397,29 @@ let
 end
 
 let
+    M = nothing
+
     root = MCTSNode()
     @test mcts_select(root, 1.0) === root
 
-    mcts_sim!(root, 1.0)
-    mcts_sim!(root, 1.0)
+    mcts_sim!(root, 1.0, M)
+    mcts_sim!(root, 1.0, M)
 
     π = zeros(Float64, 9)
     @test get_policy_probabilities!(π, root, 1.0) == [1,0,0,0,0,0,0,0,0]
 
-    mcts_sim!(root, 1.0)
-    mcts_sim!(root, 1.0)
+    mcts_sim!(root, 1.0, M)
+    mcts_sim!(root, 1.0, M)
 
     for i in 1 : 1000
-        mcts_sim!(root, 1.0)
+        mcts_sim!(root, 1.0, M)
         get_policy_probabilities!(π, root, 1.0)
     end
 end
 
 let
+    M = nothing
+
     s = zero(UInt32)
     s = place_x_at(s, 1)
     s = place_x_at(s, 2)
@@ -343,28 +429,54 @@ let
 
     π = zeros(Float64, 9)
     for i in 1 : 10
-        mcts_sim!(root, 0.01)
+        mcts_sim!(root, 0.01, M)
     end
 
     get_policy_probabilities!(π, root, 1.0)
-    @show π
-
-    display_tree(root)
+    # @show π
+    # display_tree(root)
 end
 
 srand(0)
 let
-    root = MCTSNode()
+    n_wins_x = 0
+    n_wins_o = 0
+    n_ties = 0
 
-    while !game_over(root.s)
-        print_board(root.s)
+    τ = 0.1 # best possible move
+    c = 0.1
+    π = zeros(Float64, 9)
+    # M = nothing
+    M = AffineModel()
 
-        run_mcts!(root, 1.0, 100)
-        π = zeros(Float64, 9)
-        get_policy_probabilities!(π, root, 1.0)
-        a = draw_action(π)
-        root = root.children[a]
+    for i in 1 : 100
+
+        root = MCTSNode()
+
+        println(i, " / ", 100)
+
+        while !game_over(root.s)
+            # print_board(root.s)
+            run_mcts!(root, c, 10000, M)
+            get_policy_probabilities!(π, root, τ)
+            a = draw_action(π)
+            root = root.children[a]
+        end
+
+        if game_status(root.s) != 0
+           print_board(root.s)
+        end
+
+        l = loss(M, z, π, A, c)
+        @show l
+
+        n_wins_x += (game_status(root.s) ==  1)
+        n_wins_o += (game_status(root.s) == -1)
+        n_ties += (game_status(root.s) == 0)
+
+        @assert game_over(root.s)
+        # @assert game_status(root.s) == 0
     end
 
-    print_board(root.s)
+    # print_board(root.s)
 end
