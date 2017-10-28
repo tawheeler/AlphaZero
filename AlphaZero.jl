@@ -74,6 +74,16 @@ function valid_moves(s::State)
     end
     return retval
 end
+function valid_moves!(A::BitVector, s::State)
+    if game_over(s)
+        fill!(A, false)
+    else
+        for i in 1 : 9
+            A[i] = !is_any_at(s, i)
+        end
+    end
+    return A
+end
 
 function print_board(io::IO, s::State)
     println(io, "game_status:   ", game_status(s))
@@ -129,11 +139,7 @@ function mcts_select(root::MCTSNode,
 
     #=
     The first in-tree phase of each sim begins at the root node
-<<<<<<< HEAD
-    and finishes when the sim reaches a lead node. 
-=======
-    and finishes when the sim reaches a lead node.
->>>>>>> 426423c567dfd1e893d1704e43a0f9dad95ca665
+    and finishes when the sim reaches a leaf node.
     Actions are selected according to the PUCT algorithm.
     The strategy initially prefers actions with with prior prob and low visit count,
     but asymptotically perfers actions with high action value.
@@ -252,72 +258,90 @@ function predict(M::Void, s::State)
     return (p,v)
 end
 
-const POSITION_LOG_CAPACITY = 100
-position_log = CircularBuffer{AffineModelData}(POSITION_LOG_CAPACITY)
-
 mutable struct AffineModelData
-    x::Vector{Float64}
-    c₁::Vector{Float64} # W⋅x
-    c₂::Vector{Float64} # b + c₁
-    p_tilde::Vector{Float64} # relu(c₂[1:9])
-    v::Float64 # tanh(c₂[10])
+    x::Vector{Float64} # input
+    affine::Vector{Float64} # W⋅x + b
+    p_tilde::Vector{Float64} # relu(c₂[1:9]), unnormalized predicted policy probabilities
+    v::Float64 # tanh(c₂[10]), predicted value
     A::BitVector # valid move mask
     p_tilde_masked::Vector{Float64}
     p::Vector{Float64} # probability distribution
-    z::Float64
-    c::Float64
-    π::Vector{Float64}
-    loss::Float64
+    z::Float64 # true game result
+    c::Float64 # regression scalar
+    π::Vector{Float64} # MCTS improved policy
+    loss::Float64 # loss
 end
+AffineModelData() = AffineModelData(
+    zeros(Float64,16), # x
+    zeros(Float64,10), # affine
+    zeros(Float64,9),  # p_tilde
+    0.0,
+    trues(9),
+    zeros(Float64,9),
+    zeros(Float64,9),
+    0.0,
+    0.0,
+    zeros(Float64,9),
+    0.0,
+    )
 
-struct AffineModel
+mutable struct AffineModel
+    W::Matrix{Float64}
+    b::Vector{Float64}
+    data::AffineModelData
+end
+AffineModel() = AffineModel(
+    randn(Float64, 10, 16), # W
+    randn(Float64, 10), # b
+    AffineModelData(),
+    )
+
+struct AffineModelGradient
     W::Matrix{Float64}
     b::Vector{Float64}
 end
-
-AffineModel() = AffineModel(
-        zeros(Float64,16),
-        randn(Float64,10,16),
-        zeros(Float64,10),
-        randn(Float64,10),
-        zeros(Float64,10),
-        zeros(Float64,9),
-        0.0,
-        trues(9),
-        zeros(Float64,9),
-        zeros(Float64,9),
-        0.0,
-        0.0,
-        zeros(Float64,9),
-        0.0,
-        )
+AffineModelGradient() = AffineModelGradient(
+    randn(Float64, 10, 16), # W
+    randn(Float64, 10), # b
+    )
+function Base.clear!(∇::AffineModelGradient)
+    fill!(∇.W, 0)
+    fill!(∇.b, 0)
+    return ∇
+end
+function Base.:+(M::AffineModel, ∇::AffineModelGradient)
+    M.W += ∇.W
+    M.b += ∇.b
+    return M
+end
 
 relu(x::Real) = max(0,x)
 function predict(M::AffineModel, s::State)
     
-    copy!(M.x, s)
+    copy!(M.data.x, s)
 
-    M.c₁[:] = M.W * M.x
-    M.c₂[:] = M.b + M.c₁
-    M.p_tilde[:] = relu.(M.c₂[1:9]) .+ 0.001 # avoid catastrophe with all-negative values
-    M.v = tanh(M.c₂[10])
+    M.data.affine[:] = M.W * M.data.x + M.b
+    M.data.p_tilde[:] = relu.(M.data.affine[1:9]) .+ 0.001 # avoid catastrophe with all-negative values
+    M.data.v = tanh(M.data.affine[10])
 
-    return (M.p_tilde, M.v)
+    return (M.data.p_tilde, M.data.v)
 end
 function loss(M::AffineModel, z::Int, π::Vector{Float64}, A::BitVector, c::Float64)
-    copy!(M.A, A)
-    copy!(M.π, π)
-    M.p_tilde_masked[:] = M.p_tilde .* A
-    M.p[:] = M.p_tilde_masked ./ sum(M.p_tilde_masked)
-    M.z = z
-    M.c = c
-    M.loss = (z-M.v)^2 - π⋅log.(M.p) + c*(norm(M.W,2) + norm(M.b,2))
-    return M.loss
+    copy!(M.data.A, A)
+    copy!(M.data.π, π)
+    M.data.p_tilde_masked[:] = M.data.p_tilde .* A
+    M.data.p[:] = M.data.p_tilde_masked ./ sum(M.data.p_tilde_masked)
+    M.data.z = z
+    M.data.c = c
+    M.data.loss = (z-M.data.v)^2 - π⋅log.(M.data.p) + c*(norm(M.W,2) + norm(M.b,2))
+    return M.data.loss
 end
-# function accumulate_gradient!(M::AffineModel, ∇::AffineModelGradient, s::State, z::Int, π::Vector{Float64}, A::BitVector, c::Float64)
-#     predict(M, s)
-#     loss(M, z, π, c)
-# end
+function accumulate_gradient!(M::AffineModel, ∇::AffineModelGradient)
+    # TODO: this
+end
+
+const POSITION_LOG_CAPACITY = 100
+position_log = CircularBuffer{AffineModelData}(POSITION_LOG_CAPACITY)
 
 # struct Model
 #     x::Vector{Float64}
@@ -333,7 +357,7 @@ end
 #     c::Float64
 #     loss::Float64
 # end
-# 
+#
 # function forward!(M::Model, s::State)
 
 #     x, W, b, y = M.x, M.W, M.b, M.y
@@ -368,6 +392,7 @@ let
     @test !is_x_at(s, 1)
     @test !is_o_at(s, 1)
     @test valid_moves(s) == [1,2,3,4,5,6,7,8,9]
+    @test valid_moves!(falses(9), s) == trues(9)
 
     s = place_x_at(s, 1)
     @test !black_to_move(s)
@@ -376,6 +401,7 @@ let
     @test  is_x_at(s, 1)
     @test !is_o_at(s, 1)
     @test valid_moves(s) == [2,3,4,5,6,7,8,9]
+    @test valid_moves!(falses(9), s) == convert(BitVector, [0,1,1,1,1,1,1,1,1])
 
     s = place_o_at(s, 4)
     s = place_x_at(s, 2)
@@ -442,33 +468,43 @@ let
     n_wins_x = 0
     n_wins_o = 0
     n_ties = 0
+    n_games = 5
 
     τ = 0.1 # best possible move
     c = 0.1
-    π = zeros(Float64, 9)
     # M = nothing
     M = AffineModel()
+    ∇ = AffineModelGradient()
 
-    for i in 1 : 100
+    for i in 1 : n_games
 
         root = MCTSNode()
 
-        println(i, " / ", 100)
+        println(i, " / ", n_games)
 
+        n_ticks_in_game = 0
         while !game_over(root.s)
+
+            p, v = predict(M, root.s)
+            D = M.data
+            valid_moves!(D.A, root.s)
+
             # print_board(root.s)
             run_mcts!(root, c, 10000, M)
-            get_policy_probabilities!(π, root, τ)
+            π = get_policy_probabilities!(D.π, root, τ)
             a = draw_action(π)
             root = root.children[a]
+
+            push!(position_log, deepcopy(D))
+            n_ticks_in_game += 1
         end
 
-        if game_status(root.s) != 0
-           print_board(root.s)
-        end
+        z = game_status(root.s)
 
-        l = loss(M, z, π, A, c)
-        @show l
+        for j in 1 : n_ticks_in_game
+            M.data = position_log[end-j+1]
+            loss(M, z, M.data.π, M.data.A, M.data.c)
+        end
 
         n_wins_x += (game_status(root.s) ==  1)
         n_wins_o += (game_status(root.s) == -1)
@@ -477,6 +513,14 @@ let
         @assert game_over(root.s)
         # @assert game_status(root.s) == 0
     end
+
+    clear!(∇)
+    for i in 1 : 10
+        M.data = sample(position_log)
+        accumulate_gradient!(M, ∇)
+    end
+    @show ∇
+    M + ∇
 
     # print_board(root.s)
 end
