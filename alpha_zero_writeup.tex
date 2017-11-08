@@ -164,7 +164,7 @@
 
 \begin{document}
 
-{\LARGE \bf Alpha Zero - How and Why it Works}
+{\LARGE \bf AlphaGo Zero - How and Why it Works}
 
 \vspace{2mm}
 
@@ -176,11 +176,8 @@ wheelert@stanford.edu \\[1em]
 
 \section*{Overview}
 
-DeepMind's AlphaGo made waves when it became the first AI to beat a top human Go player in \todo{THEN}.
-This version of AlphaGo---AlphaGo Lee---used a large set of Go games from the best players in the world during its training process.
-A new paper was released a few days detailing a new neural net---AlphaGo Zero---that does not need humans to show it how to play Go.
-Not only does it outperform all previous Go players, human or machine, it does so after only three days of training time.
-This article will explain how and why it works, including an implementation of the Zero algorithm in Julia.
+DeepMind's AlphaGo made waves when it became the first AI to beat a top human Go player in March of 2016.
+This version of AlphaGo---AlphaGo Lee---used a large set of Go games from the best players in the world during its training process. A new paper was released a few days ago detailing a new neural net---AlphaGo Zero---that does not need humans to show it how to play Go. Not only does it outperform all previous Go players, human or machine, it does so after only three days of training time. This article will explain how and why it works.
 
 % You need to be at least this tall to read this article:
 % \begin{enumerate}
@@ -202,7 +199,7 @@ Monte Carlo tree search will selectively try moves based on how good it thinks t
 		\node[below right=0.0 and -1 of text] (info) {both players see everything};
 		\node[below right=0.5 and -1 of text] (game) {players competing against one another};
 		\node[below right=1.0 and -1 of text] (deterministic) {every move has a set outcome};
-		\node[below right=1.5 and -1 of text] (discrete) {finite number of possible moves and board states};
+		\node[below right=1.5 and -1 of text] (discrete) {individually separate and distinct moves and positions};
 
 		\draw[thick, pastelBlue] ($(text.south east) + (-0.1,0.1)$) -- ++(-3,0)
 								 ($(text.south east) + (-0.1,0.1) + (-1.5,0)$) |- (info);
@@ -907,7 +904,7 @@ then the bot would choose the first action and proceed to $s_{0,1}$.
 
 Games like chess and Go have very large branching factors.
 In a given game state there are many possible actions to take, making it very difficult to adequately explore the future game states.
-As a result, there are an estimated $10^{47}$ board states in chess, and Go played on a traditional $19 \times 19$ board has around $10^170$ (Tic-tac-toe only has \num{5478} values states).
+As a result, there are an estimated $10^{46}$ board states in chess, and Go played on a traditional $19 \times 19$ board has around $10^170$ (Tic-tac-toe only has \num{5478} values states).
 
 Move evaluation with vanilla Monte Carlo tree search just isn't efficient enough.
 We need a way to further focus our attention to worthwhile moves.
@@ -1051,7 +1048,7 @@ Does an algorithm exist for training the expert policy and value function?
 
 The Alpha Zero algorithm produces better and better expert policies and value functions over time by playing games against itself with accelerated Monte Carlo tree search.
 The expert policy $\pi$ and the approximate value function $\hat{W}$ are both represented by deep neural networks.
-In fact, to increase efficiency, Alpha Zero uses one neural network $f$ that takes in the game state\footnote{Technically, it takes in the previous \todo{eight} game states and an indicator telling it whose turn it is.} and produces both the probabilities over the next move and the approximate state value.
+In fact, to increase efficiency, Alpha Zero uses one neural network $f$ that takes in the game state\footnote{Technically, it takes in the previous eight game states and an indicator telling it whose turn it is.} and produces both the probabilities over the next move and the approximate state value.
 
 \[f(s) \rightarrow [\vect p, W]\]
 
@@ -1319,26 +1316,12 @@ One stats with a randomly initialized set of neural network parameters $\vect \t
 This neural network is then used in multiple games in which it plays itself.
 In each of these games, for each move, Monte Carlo tree search is used to calculate $\pi$.
 The final outcome of each game determines that game's value for $Z$.
-The parameters $\vect \theta$ are then improved by using gradient descent\footnote{Or any of the more sophisticated accelerated descent methods---Alpha Zero used \todo{ADAM}.} on the loss function for a random selection of states played.
-
-\section*{Julia Implementation}
-
-I implemented the Alpha Zero algorithm in Julia.
-\todo{You can find the self-contained code here.}
-\todo{The following plots...}
-
-\todo{Performance of pure MCTS with totally random policy vs. depth}
-
-\todo{heatmap of pure MCTS with fixed depth w/ x-axis $c$ and y-axis $\tau$}
-
-\todo{Performance vs. training time} % show how long it takes to converge to perfect play
-
-\todo{heatmap of time to convergence to perfect play w/ x-axis $c$ and y-axis $\lambda$}
+The parameters $\vect \theta$ are then improved by using gradient descent\footnote{Or any of the more sophisticated accelerated descent methods---Alpha Zero used stochastic gradient descent with momentum and learning rate annealing.} on the loss function for a random selection of states played.
 
 \section*{Closing Comments}
 
-\todo{They contributed a clean and stable learning algorithm that trains efficiently using only data from self-play.}
-\todo{What Andrewj Karpathy has said about this - that this is just discrete games, etc.}
-\todo{Re-iterate on what Sam Harris said, that AIs will only be human-level for a brief instant.}
+And that's it. The folks at DeepMind contributed a clean and stable learning algorithm that trains game-playing agents efficiently using only data from self-play. While the current Zero algorithm only works for discrete games, it will be interesting whether it will be extended to MDPs or their partially observable counterparts in the future.
+
+It is interesting to see how quickly the field of AI is progressing. Those who claim we will be able to see the robot overlords coming in time should take heed - these AI's will only be human-level for a brief instant before blasting past us into superhuman territories, never to look back.
 
 \end{document}
