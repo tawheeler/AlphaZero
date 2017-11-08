@@ -186,7 +186,7 @@ function mcts_sim!(root::MCTSNode, c::Float64)
         mcts_backup!(leaf, v)
     else
         # p, v = predict(s)
-        
+
         p = ones(Float64, 9)
         v = 0.0 # no clue who wins
 
@@ -327,38 +327,38 @@ let
     end
 end
 
-let
-    s = zero(UInt32)
-    s = place_x_at(s, 1)
-    s = place_x_at(s, 2)
-    s = place_o_at(s, 4)
-    s = place_o_at(s, 5)
-    root = MCTSNode(s, 0, 0.0, 0.0, 1.0, nothing, MCTSNode[])
+# let
+#     s = zero(UInt32)
+#     s = place_x_at(s, 1)
+#     s = place_x_at(s, 2)
+#     s = place_o_at(s, 4)
+#     s = place_o_at(s, 5)
+#     root = MCTSNode(s, 0, 0.0, 0.0, 1.0, nothing, MCTSNode[])
 
-    π = zeros(Float64, 9)
-    for i in 1 : 10
-        mcts_sim!(root, 0.01)
-    end
+#     π = zeros(Float64, 9)
+#     for i in 1 : 10
+#         mcts_sim!(root, 0.01)
+#     end
 
-    get_policy_probabilities!(π, root, 1.0)
-    @show π
+#     get_policy_probabilities!(π, root, 1.0)
+#     @show π
 
-    display_tree(root)
-end
+#     display_tree(root)
+# end
 
-srand(0)
-let
-    root = MCTSNode()
+# srand(0)
+# let
+#     root = MCTSNode()
 
-    while !game_over(root.s)
-        print_board(root.s)
+#     while !game_over(root.s)
+#         print_board(root.s)
 
-        run_mcts!(root, 1.0, 100)
-        π = zeros(Float64, 9)
-        get_policy_probabilities!(π, root, 1.0)
-        a = draw_action(π)
-        root = root.children[a]
-    end
+#         run_mcts!(root, 1.0, 100)
+#         π = zeros(Float64, 9)
+#         get_policy_probabilities!(π, root, 1.0)
+#         a = draw_action(π)
+#         root = root.children[a]
+#     end
 
-    print_board(root.s)
-end
+#     print_board(root.s)
+# end
